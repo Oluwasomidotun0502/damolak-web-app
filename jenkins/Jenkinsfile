@@ -1,0 +1,101 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION         = 'us-east-1'
+        ECR_REPOSITORY_URL = '849837240914.dkr.ecr.us-east-1.amazonaws.com/damolak-production-app'
+        APP_EC2_IP         = '54.227.22.164'
+        IMAGE_TAG          = "v${BUILD_NUMBER}"
+        SSH_KEY_PATH       = '/var/lib/jenkins/.ssh/damolak-key.pem'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code...'
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "Building Docker image: ${ECR_REPOSITORY_URL}:${IMAGE_TAG}"
+                sh """
+                    docker build -t ${ECR_REPOSITORY_URL}:${IMAGE_TAG} ./app
+                    docker tag ${ECR_REPOSITORY_URL}:${IMAGE_TAG} ${ECR_REPOSITORY_URL}:latest
+                """
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running health check test...'
+                sh """
+                    docker run -d --name test-container -p 3001:3000 ${ECR_REPOSITORY_URL}:${IMAGE_TAG}
+                    sleep 5
+                    docker exec test-container node src/test.js
+                    docker stop test-container
+                    docker rm test-container
+                """
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                echo 'Pushing image to ECR...'
+                sh """
+                    aws ecr get-login-password --region ${AWS_REGION} | \
+                    docker login --username AWS --password-stdin ${ECR_REPOSITORY_URL}
+                    docker push ${ECR_REPOSITORY_URL}:${IMAGE_TAG}
+                    docker push ${ECR_REPOSITORY_URL}:latest
+                """
+            }
+        }
+
+        stage('Deploy to App EC2') {
+            steps {
+                echo "Deploying to App EC2 at ${APP_EC2_IP}..."
+                sh """
+                    chmod 400 ${SSH_KEY_PATH}
+                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} \
+                        scripts/deploy.sh ec2-user@${APP_EC2_IP}:/home/ec2-user/deploy.sh
+
+                    ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} \
+                        ec2-user@${APP_EC2_IP} \
+                        "chmod +x /home/ec2-user/deploy.sh && \
+                         AWS_REGION=${AWS_REGION} \
+                         ECR_REPOSITORY_URL=${ECR_REPOSITORY_URL} \
+                         IMAGE_TAG=${IMAGE_TAG} \
+                         /home/ec2-user/deploy.sh"
+                """
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                echo 'Verifying deployment...'
+                sh """
+                    sleep 10
+                    curl -f http://${APP_EC2_IP}:3000/health
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment successful! App is live at http://${APP_EC2_IP}:3000"
+        }
+        failure {
+            echo 'Pipeline failed. Check logs above for details.'
+            sh """
+                docker stop test-container || true
+                docker rm test-container  || true
+            """
+        }
+        always {
+            sh 'docker image prune -f || true'
+        }
+    }
+}
