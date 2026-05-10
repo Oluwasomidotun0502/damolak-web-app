@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_REGION         = 'us-east-1'
         ECR_REPOSITORY_URL = '849837240914.dkr.ecr.us-east-1.amazonaws.com/damolak-production-app'
-        APP_EC2_IP         = '54.227.22.164'
+        APP_EC2_IP         = '10.0.1.82'
         IMAGE_TAG          = "v${BUILD_NUMBER}"
         SSH_KEY_PATH       = '/var/lib/jenkins/.ssh/damolak-key.pem'
     }
