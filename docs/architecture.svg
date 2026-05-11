@@ -1,0 +1,109 @@
+<svg width="100%" viewBox="0 0 680 740" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Damolak Web App — Architecture Diagram</title>
+  <desc>End-to-end DevOps architecture showing GitHub, Jenkins CI/CD, ECR, App EC2, and CloudWatch on AWS inside a VPC</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="680" height="740" fill="#ffffff"/>
+
+  <!-- Developer -->
+  <rect x="40" y="40" width="110" height="56" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="14" font-weight="500" x="95" y="64" text-anchor="middle" fill="#2C2C2A">Developer</text>
+  <text font-family="sans-serif" font-size="12" x="95" y="82" text-anchor="middle" fill="#5F5E5A">git push</text>
+
+  <!-- GitHub -->
+  <rect x="40" y="148" width="110" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="14" font-weight="500" x="95" y="170" text-anchor="middle" fill="#26215C">GitHub</text>
+  <text font-family="sans-serif" font-size="12" x="95" y="188" text-anchor="middle" fill="#534AB7">damolak-web-app</text>
+
+  <!-- Arrow: Developer → GitHub -->
+  <line x1="95" y1="96" x2="95" y2="146" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Internet users -->
+  <rect x="432" y="148" width="180" height="56" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="14" font-weight="500" x="522" y="170" text-anchor="middle" fill="#2C2C2A">Internet users</text>
+  <text font-family="sans-serif" font-size="12" x="522" y="188" text-anchor="middle" fill="#5F5E5A">http://&lt;ip&gt;:3000</text>
+
+  <!-- AWS outer container -->
+  <rect x="20" y="240" width="640" height="480" rx="16" fill="none" stroke="#378ADD" stroke-width="0.8" stroke-dasharray="6 3"/>
+  <text font-family="sans-serif" font-size="12" x="36" y="262" fill="#378ADD">AWS — us-east-1</text>
+
+  <!-- VPC container -->
+  <rect x="36" y="272" width="608" height="432" rx="12" fill="none" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3"/>
+  <text font-family="sans-serif" font-size="12" x="52" y="292" fill="#1D9E75">VPC — 10.0.0.0/16</text>
+
+  <!-- Public subnet container -->
+  <rect x="52" y="304" width="576" height="270" rx="8" fill="none" stroke="#888780" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <text font-family="sans-serif" font-size="12" x="68" y="322" fill="#888780">Public subnet — 10.0.1.0/24</text>
+
+  <!-- Jenkins EC2 -->
+  <rect x="68" y="334" width="160" height="72" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="14" font-weight="500" x="148" y="358" text-anchor="middle" fill="#412402">Jenkins EC2</text>
+  <text font-family="sans-serif" font-size="12" x="148" y="376" text-anchor="middle" fill="#854F0B">t3.small · port 8080</text>
+  <text font-family="sans-serif" font-size="12" x="148" y="392" text-anchor="middle" fill="#854F0B">CI/CD pipeline</text>
+
+  <!-- ECR -->
+  <rect x="260" y="334" width="160" height="72" rx="8" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="14" font-weight="500" x="340" y="356" text-anchor="middle" fill="#042C53">Amazon ECR</text>
+  <text font-family="sans-serif" font-size="12" x="340" y="374" text-anchor="middle" fill="#185FA5">Docker image registry</text>
+  <text font-family="sans-serif" font-size="12" x="340" y="392" text-anchor="middle" fill="#185FA5">damolak-production-app</text>
+
+  <!-- App EC2 -->
+  <rect x="452" y="334" width="160" height="72" rx="8" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="14" font-weight="500" x="532" y="356" text-anchor="middle" fill="#04342C">App EC2</text>
+  <text font-family="sans-serif" font-size="12" x="532" y="374" text-anchor="middle" fill="#0F6E56">t3.micro · port 3000</text>
+  <text font-family="sans-serif" font-size="12" x="532" y="392" text-anchor="middle" fill="#0F6E56">Docker container</text>
+
+  <!-- Arrow: Jenkins → ECR (push image) -->
+  <line x1="228" y1="370" x2="258" y2="370" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+  <text font-family="sans-serif" font-size="11" x="243" y="362" text-anchor="middle" fill="#5F5E5A">push</text>
+
+  <!-- Arrow: ECR → App EC2 (pull image) -->
+  <line x1="420" y1="370" x2="450" y2="370" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+  <text font-family="sans-serif" font-size="11" x="435" y="362" text-anchor="middle" fill="#5F5E5A">pull</text>
+
+  <!-- Arrow: Jenkins → App EC2 (SSH deploy, curved below) -->
+  <path d="M148 406 L148 450 L532 450 L532 408" fill="none" stroke="#888780" stroke-width="0.8" stroke-dasharray="4 2" marker-end="url(#arrow)"/>
+  <text font-family="sans-serif" font-size="11" x="340" y="444" text-anchor="middle" fill="#5F5E5A">SSH deploy via private IP</text>
+
+  <!-- Arrow: GitHub → Jenkins -->
+  <path d="M150 180 Q260 180 260 290 Q260 334 230 334" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
+  <text font-family="sans-serif" font-size="11" x="230" y="250" text-anchor="middle" fill="#5F5E5A">webhook / clone</text>
+
+  <!-- Arrow: Internet users → App EC2 -->
+  <line x1="532" y1="204" x2="532" y2="332" stroke="#888780" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#arrow)"/>
+  <text font-family="sans-serif" font-size="11" x="560" y="270" fill="#5F5E5A">HTTP</text>
+
+  <!-- CloudWatch box -->
+  <rect x="68" y="490" width="544" height="72" rx="8" fill="#FAECE7" stroke="#D85A30" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="14" font-weight="500" x="340" y="514" text-anchor="middle" fill="#4A1B0C">AWS CloudWatch</text>
+  <text font-family="sans-serif" font-size="12" x="340" y="532" text-anchor="middle" fill="#993C1D">Log group: /damolak/production/app · CPU alarm</text>
+  <text font-family="sans-serif" font-size="12" x="340" y="550" text-anchor="middle" fill="#993C1D">mem_used_percent · disk_used_percent</text>
+
+  <!-- Arrow: App EC2 → CloudWatch -->
+  <line x1="532" y1="408" x2="532" y2="488" stroke="#888780" stroke-width="0.8" marker-end="url(#arrow)"/>
+
+  <!-- Arrow: Jenkins EC2 → CloudWatch -->
+  <line x1="148" y1="408" x2="148" y2="488" stroke="#888780" stroke-width="0.8" marker-end="url(#arrow)"/>
+  <text font-family="sans-serif" font-size="11" x="556" y="452" fill="#5F5E5A">metrics</text>
+
+  <!-- Terraform boundary label -->
+  <rect x="68" y="578" width="544" height="28" rx="6" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3 2"/>
+  <text font-family="sans-serif" font-size="12" x="340" y="597" text-anchor="middle" fill="#888780">All AWS resources provisioned by Terraform — 4 modules · 17 resources</text>
+
+  <!-- Legend -->
+  <rect x="68" y="622" width="12" height="12" rx="2" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="12" x="86" y="633" fill="#5F5E5A">Jenkins</text>
+  <rect x="160" y="622" width="12" height="12" rx="2" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="12" x="178" y="633" fill="#5F5E5A">ECR</text>
+  <rect x="220" y="622" width="12" height="12" rx="2" fill="#E1F5EE" stroke="#1D9E75" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="12" x="238" y="633" fill="#5F5E5A">App EC2</text>
+  <rect x="310" y="622" width="12" height="12" rx="2" fill="#FAECE7" stroke="#D85A30" stroke-width="0.5"/>
+  <text font-family="sans-serif" font-size="12" x="328" y="633" fill="#5F5E5A">CloudWatch</text>
+  <line x1="420" y1="628" x2="442" y2="628" stroke="#888780" stroke-width="0.8" stroke-dasharray="4 2"/>
+  <text font-family="sans-serif" font-size="12" x="448" y="633" fill="#5F5E5A">Automated path</text>
+</svg>
