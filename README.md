@@ -302,7 +302,12 @@ Each build is tagged with the Jenkins build number (e.g., `v1`, `v2`, `v3`). Thi
 
 CloudWatch is configured on the App EC2 with:
 
+<<<<<<< HEAD
 - **Log group:** `/damolak/production/app` - collects application logs from `/var/log/app/app.log`
+=======
+- **Log group:** `/damolak/production/app` 
+- **Log path on instance:** `/var/log/app/app.log`
+>>>>>>> 1b82e2d (Fix CloudWatch log group path mismatch for consistency)
   
 - **CPU alarm:** `damolak-production-app-cpu-high` - triggers when CPU > 80% for 4 consecutive minutes
   
@@ -404,4 +409,7 @@ The CloudWatch agent is installed and started automatically via the App EC2 user
 
 **LinkedIn:** https://linkedin.com/in/oluwasomidotun-adepitan 
 
+<<<<<<< HEAD
 **Email:** Anuoluwapodotun@gmail.com
+=======
+>>>>>>> 1b82e2d (Fix CloudWatch log group path mismatch for consistency)

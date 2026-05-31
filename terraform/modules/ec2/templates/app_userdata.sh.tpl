@@ -28,7 +28,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<EOF
         "collect_list": [
           {
             "file_path": "/var/log/app/app.log",
-            "log_group_name": "/damolak/${aws_region}/app",
+            "log_group_name": "/damolak/production/app",
             "log_stream_name": "{instance_id}",
             "timezone": "UTC"
           }
