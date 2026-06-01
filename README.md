@@ -302,12 +302,9 @@ Each build is tagged with the Jenkins build number (e.g., `v1`, `v2`, `v3`). Thi
 
 CloudWatch is configured on the App EC2 with:
 
-<<<<<<< HEAD
 - **Log group:** `/damolak/production/app` - collects application logs from `/var/log/app/app.log`
-=======
 - **Log group:** `/damolak/production/app` 
 - **Log path on instance:** `/var/log/app/app.log`
->>>>>>> 1b82e2d (Fix CloudWatch log group path mismatch for consistency)
   
 - **CPU alarm:** `damolak-production-app-cpu-high` - triggers when CPU > 80% for 4 consecutive minutes
   
@@ -328,6 +325,8 @@ The CloudWatch agent is installed and started automatically via the App EC2 user
 **Private IP for App EC2 deployment** - Jenkins deploys to the App EC2 using its private IP (`10.0.1.82`) rather than the public IP. The App EC2's SSH rule is locked to the Jenkins security group, not the internet, which is a deliberate security boundary.
 
 **IAM instance profile over access keys** - No AWS credentials are hardcoded anywhere in the codebase. Both EC2 instances use an IAM instance profile for ECR and CloudWatch access. This follows AWS security best practices and eliminates credential rotation concerns.
+
+**Granular IAM policy for ECR** - The initial submission used `AmazonEC2ContainerRegistryFullAccess` which is overly broad for production. This has been replaced with a custom inline policy scoped to only the specific ECR actions required — `GetAuthorizationToken`, `BatchGetImage`, `GetDownloadUrlForLayer`, `PutImage`, `InitiateLayerUpload`, `UploadLayerPart`, `CompleteLayerUpload`, and `BatchCheckLayerAvailability` — and restricted to the specific repository ARN rather than all ECR resources.
 
 **Multi-stage Dockerfile** - The builder stage installs npm dependencies; the final stage copies only what is needed to run the app. This keeps the production image lean and avoids shipping development tooling.
 
@@ -409,7 +408,5 @@ The CloudWatch agent is installed and started automatically via the App EC2 user
 
 **LinkedIn:** https://linkedin.com/in/oluwasomidotun-adepitan 
 
-<<<<<<< HEAD
 **Email:** Anuoluwapodotun@gmail.com
-=======
->>>>>>> 1b82e2d (Fix CloudWatch log group path mismatch for consistency)
+

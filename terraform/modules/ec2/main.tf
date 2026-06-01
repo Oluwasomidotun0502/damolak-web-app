@@ -13,6 +13,7 @@ data "aws_ami" "amazon_linux_2" {
   }
 }
 
+# ── IAM Role ─────────────────────────────────────────────────────────────────
 resource "aws_iam_role" "ec2_ecr_role" {
   name = "${var.project}-${var.environment}-ec2-ecr-role"
 
@@ -31,21 +32,54 @@ resource "aws_iam_role" "ec2_ecr_role" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecr_full" {
-  role       = aws_iam_role.ec2_ecr_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
+# ── Granular ECR policy (replaces AmazonEC2ContainerRegistryFullAccess) ──────
+# Scoped to only the permissions Jenkins and App EC2 actually need.
+# GetAuthorizationToken must be on * (AWS requirement).
+# All other actions are scoped to the specific repository.
+resource "aws_iam_role_policy" "ecr_granular" {
+  name = "${var.project}-${var.environment}-ecr-policy"
+  role = aws_iam_role.ec2_ecr_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "ECRAuthToken"
+        Effect   = "Allow"
+        Action   = ["ecr:GetAuthorizationToken"]
+        Resource = "*"
+      },
+      {
+        Sid    = "ECRRepositoryAccess"
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:BatchCheckLayerAvailability"
+        ]
+        Resource = "arn:aws:ecr:${var.aws_region}:*:repository/${var.project}-${var.environment}-app"
+      }
+    ]
+  })
 }
 
+# ── CloudWatch Agent policy ───────────────────────────────────────────────────
 resource "aws_iam_role_policy_attachment" "cloudwatch_full" {
   role       = aws_iam_role.ec2_ecr_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
+# ── Instance Profile ──────────────────────────────────────────────────────────
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.project}-${var.environment}-ec2-profile"
   role = aws_iam_role.ec2_ecr_role.name
 }
 
+# ── Jenkins EC2 ───────────────────────────────────────────────────────────────
 resource "aws_instance" "jenkins" {
   ami                    = data.aws_ami.amazon_linux_2.id
   instance_type          = var.jenkins_instance_type
@@ -72,6 +106,7 @@ resource "aws_instance" "jenkins" {
   }
 }
 
+# ── App EC2 ───────────────────────────────────────────────────────────────────
 resource "aws_instance" "app" {
   ami                    = data.aws_ami.amazon_linux_2.id
   instance_type          = var.app_instance_type
@@ -97,6 +132,7 @@ resource "aws_instance" "app" {
   }
 }
 
+# ── CloudWatch Log Group ──────────────────────────────────────────────────────
 resource "aws_cloudwatch_log_group" "app" {
   name              = "/damolak/${var.environment}/app"
   retention_in_days = 7
@@ -107,6 +143,7 @@ resource "aws_cloudwatch_log_group" "app" {
   }
 }
 
+# ── CloudWatch CPU Alarm ──────────────────────────────────────────────────────
 resource "aws_cloudwatch_metric_alarm" "app_cpu_high" {
   alarm_name          = "${var.project}-${var.environment}-app-cpu-high"
   comparison_operator = "GreaterThanThreshold"
